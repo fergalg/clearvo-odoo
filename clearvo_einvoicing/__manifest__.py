@@ -18,7 +18,7 @@ Belgium (Peppol BIS 3.0), Italy, Poland, Spain, Portugal and more.
     """,
     'author': 'Clearvo',
     'website': 'https://clearvo.io',
-    'license': 'OPL-1',
+    'license': 'LGPL-3',
     'depends': ['account'],
     'data': [
         'security/ir.model.access.csv',
