@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tax_form_clearvo" model="ir.ui.view">
+        <field name="name">account.tax.form.clearvo</field>
+        <field name="model">account.tax</field>
+        <field name="inherit_id" ref="account.view_tax_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='description']" position="after">
+                <field name="clearvo_tax_code"
+                       help="EN16931 tax category sent to Clearvo for lines using this tax.
+Leave blank to auto-detect: S for non-zero rates, AE for 0% rates."/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

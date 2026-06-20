@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_cron_clearvo_poll_pending" model="ir.cron">
+        <field name="name">Clearvo: Poll pending invoice status</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model._clearvo_cron_poll_pending()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active">False</field>
+        <field name="priority">10</field>
+    </record>
+
+</odoo>

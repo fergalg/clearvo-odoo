@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add Clearvo / Peppol tab to the partner form -->
+    <record id="res_partner_view_form_clearvo" model="ir.ui.view">
+        <field name="name">res.partner.view.form.clearvo</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Clearvo / Peppol" name="clearvo_peppol">
+                    <group>
+                        <group string="Peppol Endpoint">
+                            <field name="clearvo_peppol_endpoint_id"
+                                   placeholder="e.g. 0088:123456789 or 12345678"/>
+                            <field name="clearvo_peppol_scheme_id"
+                                   placeholder="e.g. 0088, 9915, 9917"/>
+                        </group>
+                        <group>
+                            <div class="text-muted" colspan="2" style="font-size:12px; line-height:1.6">
+                                <p><strong>When to set these fields:</strong></p>
+                                <p>
+                                    Required for: Netherlands (KvK → scheme 0088),
+                                    Austria (VAT → scheme 9915), Slovakia (IČO → scheme 9917),
+                                    Iceland (Kennitala → scheme 0196), New Zealand (NZBN → scheme 0088),
+                                    Switzerland (UID → scheme 0183), UAE.
+                                </p>
+                                <p>
+                                    Leave blank for: Belgium, Denmark, Norway, Finland, Sweden,
+                                    Croatia, Ireland, Luxembourg, Slovenia, Estonia, Latvia, Lithuania,
+                                    Australia, Singapore, Japan — the endpoint is derived automatically
+                                    from the VAT number.
+                                </p>
+                            </div>
+                        </group>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>

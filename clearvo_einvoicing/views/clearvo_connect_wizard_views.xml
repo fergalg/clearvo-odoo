@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_clearvo_connect_wizard_form" model="ir.ui.view">
+        <field name="name">clearvo.connect.wizard.form</field>
+        <field name="model">clearvo.connect.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Connect to Clearvo">
+                <div class="o_clearvo_wizard p-4">
+
+                    <!-- Logo / header -->
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold mb-1">Connect Clearvo to Odoo</h3>
+                        <p class="text-muted mb-0">
+                            Clearvo submits your invoices to tax authorities in France,
+                            Germany, Belgium and 10+ countries — automatically, the moment
+                            you post in Odoo.
+                        </p>
+                    </div>
+
+                    <div class="row g-4">
+
+                        <!-- Step 1 -->
+                        <div class="col-12">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="o_clearvo_step_num bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:28px;height:28px;font-size:13px;font-weight:700;">
+                                    1
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="fw-semibold mb-1">Create your Clearvo account</p>
+                                    <p class="text-muted small mb-2">
+                                        Takes 60 seconds. No credit card required.
+                                        Already have an account? Skip to step 2.
+                                    </p>
+                                    <button name="action_open_signup"
+                                            string="Create free account at clearvo.io ↗"
+                                            type="object"
+                                            class="btn btn-outline-primary btn-sm"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12"><hr class="my-0"/></div>
+
+                        <!-- Step 2 -->
+                        <div class="col-12">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="o_clearvo_step_num bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:28px;height:28px;font-size:13px;font-weight:700;">
+                                    2
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="fw-semibold mb-1">Paste your API key</p>
+                                    <p class="text-muted small mb-2">
+                                        In the Clearvo dashboard, go to
+                                        <strong>Settings → API Keys</strong>, create a key
+                                        for your entity, and paste it below.
+                                    </p>
+                                    <field name="api_key"
+                                           placeholder="csk_live_..."
+                                           password="True"
+                                           widget="char"
+                                           class="mb-0"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <footer>
+                    <button name="action_connect"
+                            string="Connect →"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancel"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open the wizard -->
+    <record id="action_clearvo_connect_wizard" model="ir.actions.act_window">
+        <field name="name">Connect to Clearvo</field>
+        <field name="res_model">clearvo.connect.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list,form</field>
+    </record>
+
+    <!-- Top-level menu item under Accounting → Configuration -->
+    <menuitem id="menu_clearvo_connect"
+              name="Clearvo E-Invoicing"
+              parent="account.menu_finance_configuration"
+              action="action_clearvo_connect_wizard"
+              sequence="100"/>
+
+</odoo>
