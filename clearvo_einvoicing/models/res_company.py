@@ -16,3 +16,9 @@ class ResCompany(models.Model):
         help='When enabled, invoices are submitted to Clearvo automatically '
              'when posted. Disable to submit manually.',
     )
+    clearvo_webhook_secret = fields.Char(
+        string='Clearvo Webhook Secret',
+        groups='base.group_system',
+        help='Signing secret returned by Clearvo when the webhook was registered. '
+             'Used to verify the authenticity of incoming status push notifications.',
+    )

@@ -76,18 +76,26 @@ class ClearvoConnectWizard(models.TransientModel):
         """
         Register an Odoo webhook URL with Clearvo so status changes are pushed
         rather than polled. The URL is derived from the Odoo base URL.
+
+        The secret returned by Clearvo is stored on the company so the controller
+        can verify the HMAC signature on incoming payloads.
         """
         try:
             base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
-            if not base_url:
+            if not base_url or not base_url.startswith('https://'):
+                # Clearvo requires HTTPS — skip on HTTP local instances (cron fallback still works).
+                _logger.info(
+                    'Clearvo webhook skipped: web.base.url is not HTTPS (%s). '
+                    'Enable the scheduled action for cron-based polling instead.',
+                    base_url,
+                )
                 return
             webhook_url = f'{base_url.rstrip("/")}/clearvo/webhook'
             resp = requests.post(
                 f'{CLEARVO_API_BASE}/webhooks',
                 json={
                     'url': webhook_url,
-                    'events': ['invoice.accepted', 'invoice.rejected', 'invoice.submitted'],
-                    'description': f'Odoo auto-registered ({self.env.company.name})',
+                    'events': ['*'],
                 },
                 headers={
                     'x-api-key': key,
@@ -95,9 +103,14 @@ class ClearvoConnectWizard(models.TransientModel):
                 },
                 timeout=10,
             )
-            if resp.status_code in (200, 201, 409):
-                # 409 = webhook URL already registered, which is fine.
-                _logger.info('Clearvo webhook registered at %s (HTTP %s)', webhook_url, resp.status_code)
+            if resp.status_code in (200, 201):
+                secret = resp.json().get('secret', '')
+                if secret:
+                    self.env.company.sudo().write({'clearvo_webhook_secret': secret})
+                _logger.info('Clearvo webhook registered at %s', webhook_url)
+            elif resp.status_code == 409:
+                # Already registered — secret was set at original registration time.
+                _logger.info('Clearvo webhook already registered at %s', webhook_url)
             else:
                 _logger.warning(
                     'Clearvo webhook registration returned HTTP %s: %s',

@@ -3,81 +3,127 @@
 <head>
     <meta charset="utf-8"/>
     <style>
-        body { font-family: -apple-system, sans-serif; max-width: 680px; margin: 0 auto; padding: 24px; color: #1a1a1a; }
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        h2 { font-size: 16px; margin-top: 28px; margin-bottom: 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
-        p, li { font-size: 14px; line-height: 1.6; color: #374151; }
-        ul { padding-left: 20px; }
-        .countries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 28px 24px; color: #111827; }
+        h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
+        h2 { font-size: 15px; font-weight: 700; margin-top: 32px; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; color: #374151; }
+        p, li { font-size: 14px; line-height: 1.7; color: #374151; }
+        ul { padding-left: 20px; margin: 8px 0; }
+        li { margin-bottom: 4px; }
+        .tagline { font-size: 16px; color: #6b7280; margin-bottom: 20px; }
+        .highlight { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 18px 0; font-size: 14px; }
+        .highlight strong { color: #15803d; }
+        .countries { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
         .country-badge { background: #eff6ff; color: #1d4ed8; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-        .highlight { background: #f0fdf4; border-left: 3px solid #16a34a; padding: 10px 14px; border-radius: 0 4px 4px 0; margin: 16px 0; }
-        code { background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+        .steps { display: flex; gap: 16px; margin: 12px 0; }
+        .step { flex: 1; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+        .step-num { width: 24px; height: 24px; background: #4f46e5; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+        .step-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .step-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+        code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-size: 12px; font-family: 'Courier New', monospace; }
+        .note { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 14px; font-size: 13px; color: #6b7280; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+        th { text-align: left; padding: 6px 10px; background: #f9fafb; border-bottom: 2px solid #e5e7eb; font-weight: 600; color: #374151; }
+        td { padding: 6px 10px; border-bottom: 1px solid #f3f4f6; color: #374151; vertical-align: top; }
     </style>
 </head>
 <body>
 
 <h1>Clearvo E-Invoicing</h1>
-<p>
-    Submit invoices to national tax authorities automatically — the moment you
-    post in Odoo. One integration, every mandate.
-</p>
+<p class="tagline">Submit invoices to national tax authorities automatically — the moment you post in Odoo.</p>
 
 <div class="highlight">
-    <strong>Connects in under 2 minutes.</strong> Create a Clearvo account,
-    paste your API key, done. No XML configuration, no format mapping,
-    no per-country setup.
+    <strong>Connects in under 2 minutes.</strong> Create a Clearvo account, paste your API key into Odoo, and you're done. No XML configuration, no format mapping, no per-country setup required.
 </div>
+
+<h2>How to get started</h2>
+<div class="steps">
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-title">Create a Clearvo account</div>
+        <div class="step-desc">Sign up free at <strong>clearvo.io</strong>. No credit card needed.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-title">Generate an API key</div>
+        <div class="step-desc">In the Clearvo dashboard go to <strong>Settings → API Keys</strong> and create an entity key.</div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-title">Connect in Odoo</div>
+        <div class="step-desc">Go to <strong>Accounting → Configuration → Clearvo E-Invoicing</strong> and paste the key.</div>
+    </div>
+</div>
+
+<h2>What it does</h2>
+<ul>
+    <li><strong>Auto-submit on post:</strong> when you confirm an invoice, Clearvo receives it, generates the correct XML format (UBL, FatturaPA, XRechnung, etc.), and submits it to the relevant tax authority.</li>
+    <li><strong>Live clearance status:</strong> every invoice shows its status — Pending, Accepted, Rejected — directly on the invoice form in Odoo.</li>
+    <li><strong>Push notifications:</strong> Clearvo sends a webhook when a status changes, so Odoo updates in real time without polling.</li>
+    <li><strong>Manual retry:</strong> if a submission fails, a Retry button appears with the full error detail from the authority.</li>
+    <li><strong>Multi-company:</strong> each Odoo company has its own API key, currency, and auto-submit toggle.</li>
+    <li><strong>Sandbox mode:</strong> use a <code>csk_test_</code> key to test the full flow — no invoices reach any tax authority.</li>
+</ul>
 
 <h2>Supported countries</h2>
 <div class="countries">
-    <span class="country-badge">France (Factur-X)</span>
-    <span class="country-badge">Germany (XRechnung)</span>
-    <span class="country-badge">Belgium (Peppol)</span>
-    <span class="country-badge">Italy (FatturaPA)</span>
-    <span class="country-badge">Poland (KSeF)</span>
-    <span class="country-badge">Spain (VeriFactu)</span>
-    <span class="country-badge">Portugal (SAFT-PT)</span>
-    <span class="country-badge">Romania (e-Factura)</span>
+    <span class="country-badge">France (Factur-X / DGFiP)</span>
+    <span class="country-badge">Germany (XRechnung / KoSIT)</span>
+    <span class="country-badge">Belgium (Peppol BIS 3.0)</span>
+    <span class="country-badge">Italy (FatturaPA / SDI)</span>
+    <span class="country-badge">Poland (KSeF FA3)</span>
+    <span class="country-badge">Spain (VeriFactu / AEAT)</span>
+    <span class="country-badge">Portugal (SAFT-PT / AT)</span>
+    <span class="country-badge">Romania (e-Factura / ANAF)</span>
     <span class="country-badge">Hungary (NAV)</span>
-    <span class="country-badge">Greece (myDATA)</span>
-    <span class="country-badge">Netherlands</span>
-    <span class="country-badge">Austria</span>
-    <span class="country-badge">Norway</span>
-    <span class="country-badge">+ more</span>
+    <span class="country-badge">Greece (myDATA / AADE)</span>
+    <span class="country-badge">Netherlands (Peppol)</span>
+    <span class="country-badge">Austria (Peppol)</span>
+    <span class="country-badge">Norway (Peppol)</span>
+    <span class="country-badge">Denmark (Peppol)</span>
+    <span class="country-badge">Argentina (AFIP)</span>
+    <span class="country-badge">+ 17 more</span>
 </div>
 
-<h2>How it works</h2>
-<ul>
-    <li><strong>Auto-submit on post:</strong> when you confirm an invoice, Clearvo receives it, generates the correct XML format, and submits it to the relevant authority.</li>
-    <li><strong>Live status:</strong> every invoice shows its clearance status — Pending, Accepted, Rejected — directly in Odoo.</li>
-    <li><strong>Manual retry:</strong> if a submission fails, a Retry button appears on the invoice with the error detail.</li>
-    <li><strong>Multi-company safe:</strong> each company has its own API key and auto-submit toggle.</li>
-    <li><strong>Sandbox mode:</strong> use a <code>csk_test_</code> key for testing — no invoices reach tax authorities.</li>
-</ul>
-
-<h2>Tax code configuration (required)</h2>
+<h2>Tax codes — automatic, with manual override</h2>
 <p>
-    Clearvo uses EN16931 tax category codes (S, AA, AE, K, G, E…) to determine
-    VAT treatment per invoice line. You must set the <strong>Clearvo Tax Code</strong>
-    field on every Odoo tax you use — go to
-    <strong>Accounting → Configuration → Taxes</strong> and open each tax to set it.
-    Common values: <code>S</code> (standard rate), <code>AA</code> (reduced rate),
-    <code>AE</code> (reverse charge), <code>K</code> (intra-EU zero-rated).
-    The module will surface a clear error if a tax is missing its code.
+    Clearvo uses EN16931 tax category codes (S, AA, AE, K, G, E, O…) to determine VAT treatment per invoice line.
+    <strong>You don't need to configure anything</strong> — the module detects the correct code automatically
+    from your Odoo tax rate and fiscal position tags:
+</p>
+<table>
+    <tr><th>Your tax in Odoo</th><th>Auto-detected code</th></tr>
+    <tr><td>Any tax with amount &gt; 0%</td><td><code>S</code> — Standard rate</td></tr>
+    <tr><td>0% with intra-EU / IC tag</td><td><code>K</code> — Intra-EU supply</td></tr>
+    <tr><td>0% with export / outside EU tag</td><td><code>G</code> — Export</td></tr>
+    <tr><td>0% with reverse charge tag</td><td><code>AE</code> — Reverse charge</td></tr>
+    <tr><td>0% with no special tag</td><td><code>E</code> — Exempt</td></tr>
+    <tr><td>Fixed amount tax</td><td><code>O</code> — Out of scope</td></tr>
+</table>
+<p>
+    If auto-detection isn't right for a specific tax, open the tax in <strong>Accounting → Configuration → Taxes</strong>
+    and set the <strong>Clearvo Tax Code Override</strong> field. The override takes precedence; the auto-detected
+    code is shown next to it so you can compare.
 </p>
 
 <h2>Requirements</h2>
 <ul>
-    <li>Odoo 17.0 or 18.0</li>
+    <li>Odoo 17.0</li>
+    <li>The <code>account</code> module (Accounting)</li>
     <li>A Clearvo account — free trial at <strong>clearvo.io</strong></li>
-    <li>The <code>account</code> module</li>
+    <li>Internet access from the Odoo server (outbound HTTPS to <code>api.clearvo.io</code>)</li>
 </ul>
+
+<div class="note">
+    <strong>Private / on-premises instances:</strong> if your Odoo server is not reachable from the public internet,
+    real-time webhook push won't work. Enable the <em>Clearvo: poll pending invoices</em> scheduled action
+    (under Technical → Scheduled Actions) to poll for status updates instead.
+</div>
 
 <h2>Support</h2>
 <p>
-    Documentation: <strong>clearvo.io/docs</strong><br/>
-    Help centre: <strong>help.clearvo.io</strong><br/>
-    Email: <strong>support@clearvo.io</strong>
+    Documentation: <a href="https://clearvo.io/docs">clearvo.io/docs</a><br/>
+    Help centre: <a href="https://help.clearvo.io">help.clearvo.io</a><br/>
+    Email: <a href="mailto:support@clearvo.io">support@clearvo.io</a>
 </p>
 
 </body>
