@@ -8,35 +8,28 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
 
-            <!-- Status bar: add Clearvo status badge after the main status bar -->
-            <xpath expr="//div[hasclass('o_statusbar_status')]" position="after">
-                <div class="o_clearvo_status_bar d-flex align-items-center gap-2 ms-4"
-                     attrs="{'invisible': [('move_type', 'not in', ['out_invoice', 'out_refund'])]}">
+            <!-- Status bar: add Clearvo status badge after the statusbar field -->
+            <xpath expr="//field[@name='state'][@widget='statusbar']" position="after">
+                <!-- Invisible carrier so clearvo fields are available to modifiers -->
+                <field name="clearvo_ref_id" invisible="1"/>
+                <field name="clearvo_error" invisible="1"/>
+                <div class="d-flex align-items-center gap-2 ms-3"
+                     invisible="move_type not in ('out_invoice', 'out_refund')">
 
-                    <span class="badge"
-                          attrs="{
-                            'invisible': [('clearvo_status', '=', 'not_sent')],
-                            'class': {
-                                'badge bg-secondary':  [('clearvo_status', '=', 'not_sent')],
-                                'badge bg-warning text-dark': [('clearvo_status', 'in', ['pending', 'submitted'])],
-                                'badge bg-success':    [('clearvo_status', '=', 'accepted')],
-                                'badge bg-danger':     [('clearvo_status', 'in', ['rejected', 'error'])],
-                            }
-                          }">
-                        <field name="clearvo_status" widget="badge"
-                               decoration-warning="clearvo_status in ('pending', 'submitted')"
-                               decoration-success="clearvo_status == 'accepted'"
-                               decoration-danger="clearvo_status in ('rejected', 'error')"
-                               decoration-muted="clearvo_status == 'not_sent'"/>
-                    </span>
+                    <field name="clearvo_status" widget="badge"
+                           decoration-warning="clearvo_status in ('pending', 'submitted')"
+                           decoration-success="clearvo_status == 'accepted'"
+                           decoration-danger="clearvo_status in ('rejected', 'error')"
+                           decoration-muted="clearvo_status == 'not_sent'"
+                           invisible="clearvo_status == 'not_sent'"/>
 
-                    <!-- Retry button — shown only for errors -->
+                    <!-- Retry button — shown only for not_sent/error -->
                     <button name="action_clearvo_retry"
                             string="Retry"
                             type="object"
                             icon="fa-refresh"
                             class="btn btn-sm btn-outline-secondary"
-                            attrs="{'invisible': [('clearvo_status', 'not in', ['not_sent', 'error'])]}"/>
+                            invisible="clearvo_status not in ('not_sent', 'error')"/>
 
                     <!-- Open in Clearvo dashboard -->
                     <button name="action_clearvo_open_dashboard"
@@ -44,14 +37,14 @@
                             type="object"
                             icon="fa-external-link"
                             class="btn btn-sm btn-outline-secondary"
-                            attrs="{'invisible': [('clearvo_ref_id', '=', False)]}"/>
+                            invisible="not clearvo_ref_id"/>
                 </div>
             </xpath>
 
-            <!-- Error detail in the chatter area / below the invoice -->
+            <!-- Error detail below the invoice lines -->
             <xpath expr="//field[@name='narration']" position="after">
-                <div class="alert alert-danger mb-3"
-                     attrs="{'invisible': [('clearvo_status', '!=', 'error')]}">
+                <div class="alert alert-danger mb-3" role="alert"
+                     invisible="clearvo_status != 'error'">
                     <strong>Clearvo submission failed</strong>
                     <p class="mb-0 mt-1 small"><field name="clearvo_error" readonly="1"/></p>
                     <button name="action_clearvo_retry"

@@ -31,7 +31,9 @@ class AccountTax(models.Model):
         help='The EN16931 code Clearvo will use for this tax, based on its rate and tags.',
     )
 
-    @api.depends('amount', 'amount_type', 'tax_tag_ids', 'tax_tag_ids.name')
+    @api.depends('amount', 'amount_type',
+                 'invoice_repartition_line_ids.tag_ids',
+                 'refund_repartition_line_ids.tag_ids')
     def _compute_clearvo_tax_code_auto(self):
         for tax in self:
             code = tax._clearvo_detect_code()
@@ -59,8 +61,12 @@ class AccountTax(models.Model):
         if self.amount > 0:
             return 'S'
 
-        # 0% tax — look at fiscal/report tags to distinguish treatment
-        tag_text = ' '.join(self.tax_tag_ids.mapped('name')).lower()
+        # 0% tax — look at fiscal/report tags on repartition lines to distinguish treatment
+        all_tags = (
+            self.invoice_repartition_line_ids.tag_ids
+            | self.refund_repartition_line_ids.tag_ids
+        )
+        tag_text = ' '.join(all_tags.mapped('name')).lower()
 
         # Intra-EU zero-rated (K): cross-border within EU, no VAT charged, buyer accounts for it
         if any(kw in tag_text for kw in (

@@ -7,53 +7,34 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="account.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@id='account_invoice']" position="after">
-                <div id="clearvo_settings" class="app_settings_block">
-                    <h2>Clearvo E-Invoicing</h2>
-                    <div class="row mt16 o_settings_container">
-
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="clearvo_auto_submit"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="clearvo_auto_submit" string="Auto-submit on post"/>
-                                <div class="text-muted">
-                                    Submit invoices to Clearvo automatically when posted.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label string="API Key"/>
-                                <div class="text-muted mb-2">
-                                    Your Clearvo API key (starts with
-                                    <code>csk_live_</code> or <code>csk_test_</code>).
-                                </div>
-                                <field name="clearvo_api_key"
-                                       password="True"
-                                       placeholder="csk_live_..."
-                                       widget="char"/>
-                                <div class="mt-2">
-                                    <button type="object"
-                                            name="action_clearvo_open_wizard"
-                                            string="Set up Clearvo →"
-                                            class="btn btn-sm btn-primary"
-                                            attrs="{'invisible': [('clearvo_api_key', '!=', False)]}"/>
-                                    <span class="badge bg-success"
-                                          attrs="{'invisible': [('clearvo_api_key', '=', False)]}">
-                                        ✓ Connected
-                                    </span>
-                                </div>
+            <!-- Insert after the Customer Invoices block -->
+            <xpath expr="//block[@id='invoicing_settings']" position="after">
+                <block title="Clearvo E-Invoicing" name="clearvo_settings_container">
+                    <setting string="API Key"
+                             help="Your Clearvo API key. Starts with csk_live_ for production or csk_test_ for sandbox.">
+                        <div class="content-group">
+                            <field name="clearvo_api_key"
+                                   password="True"
+                                   placeholder="csk_live_..."
+                                   widget="char"
+                                   class="w-100"/>
+                            <button type="object"
+                                    name="action_clearvo_open_wizard"
+                                    string="Connect to Clearvo →"
+                                    class="btn btn-sm btn-primary mt-2"
+                                    invisible="clearvo_api_key != False"/>
+                            <div class="mt-1" invisible="clearvo_api_key == False">
+                                <span class="badge text-bg-success">Connected</span>
                             </div>
                         </div>
-
-                    </div>
-                </div>
+                    </setting>
+                    <setting string="Auto-submit on post"
+                             help="Automatically submit invoices to Clearvo when you confirm them. Disable to submit manually.">
+                        <field name="clearvo_auto_submit"/>
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>
-
 
 </odoo>
