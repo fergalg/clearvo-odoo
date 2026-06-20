@@ -11,10 +11,6 @@ _logger = logging.getLogger(__name__)
 
 _SIGNATURE_TOLERANCE_SECONDS = 300  # 5-minute replay window
 
-# Statuses that tax authorities report back via Clearvo. Only these values are
-# accepted — the webhook relays authority decisions, not user input.
-_AUTHORITY_STATUSES = frozenset({'ACCEPTED', 'REJECTED', 'PENDING', 'FAILED'})
-
 
 class ClearvoWebhookController(http.Controller):
 
@@ -119,19 +115,11 @@ class ClearvoWebhookController(http.Controller):
                 status=400,
             )
 
-        # ── Validate clearanceStatus ──────────────────────────────────────────
-        # Only accept statuses that tax authorities actually report — this is a
-        # relay from the authority, not a field an external caller can set freely.
-        status = payload.get('clearanceStatus', '')
-        if status not in _AUTHORITY_STATUSES:
-            _logger.warning('Clearvo webhook: unrecognised clearanceStatus %r', status)
-            return request.make_response(
-                json.dumps({'ok': False, 'error': 'invalid_status'}),
-                headers=[('Content-Type', 'application/json')],
-                status=400,
-            )
-
         # ── Dispatch ──────────────────────────────────────────────────────────
+        # Unrecognised clearanceStatus values are handled gracefully by
+        # clearvo_handle_webhook — it maps to Odoo selection values and ignores
+        # anything it doesn't know. The status list is Clearvo's to own; the
+        # module should not whitelist it here or it will break on new statuses.
         ok = request.env['account.move'].sudo().clearvo_handle_webhook(payload)
         return request.make_response(
             json.dumps({'ok': ok}),
