@@ -11,33 +11,6 @@ _logger = logging.getLogger(__name__)
 CLEARVO_API_BASE = 'https://api.clearvo.io/v1'
 REQUEST_TIMEOUT = 30
 
-SUPPORTED_COUNTRIES = {
-    'FR', 'DE', 'BE', 'IT', 'PL', 'ES', 'PT', 'RO', 'HU', 'GR',
-    'NL', 'AT', 'DK', 'SE', 'FI', 'NO', 'IE', 'HR', 'SK', 'LU',
-    'LT', 'LV', 'EE', 'SI', 'IS', 'CH', 'AU', 'NZ', 'SG', 'JP',
-}
-
-# Countries where Peppol endpointId can be auto-derived from the VAT number.
-# Maps country_code → (EAS scheme, regex to strip the country prefix).
-# Countries NOT listed here (NL=KvK, AT=VAT scheme 9915, SK=IČO, IS, NZ, AE, CH)
-# require the user to set clearvo_peppol_endpoint_id on the partner record.
-PEPPOL_AUTO_DERIVE = {
-    'BE': ('0208', r'^BE'),
-    'DK': ('0096', r'^DK'),
-    'NO': ('0192', r'^NO'),
-    'FI': ('0037', r'^FI'),
-    'SE': ('0007', r'^SE'),
-    'HR': ('9928', r'^HR'),
-    'IE': ('9930', r'^IE'),
-    'LU': ('9923', r'^LU'),
-    'SI': ('9926', r'^SI'),
-    'EE': ('0191', r'^EE'),
-    'LV': ('0090', r'^LV'),
-    'LT': ('0200', r'^LT'),
-    'AU': ('0151', r'^AU'),
-    'SG': ('0195', r'^SG'),
-}
-
 CLEARANCE_STATUS_MAP = {
     'ACCEPTED':  'accepted',
     'REJECTED':  'rejected',
@@ -116,7 +89,6 @@ class AccountMove(models.Model):
             lambda m: m.move_type in ('out_invoice', 'out_refund')
             and m.company_id.clearvo_api_key
             and m.company_id.clearvo_auto_submit
-            and m.company_id.country_id.code in SUPPORTED_COUNTRIES
         )
         for move in qualifying:
             move._clearvo_send()
@@ -262,15 +234,11 @@ class AccountMove(models.Model):
             party['taxId'] = vat
             party['taxIdCountry'] = country_code
 
-        # Peppol endpoint: prefer explicit partner field, fall back to auto-derive.
+        # Send an explicit Peppol endpoint only when the user has configured one.
+        # Otherwise omit it — the Clearvo backend derives it from taxId + taxIdCountry.
         if peppol_endpoint_id and peppol_scheme_id:
             party['endpointId'] = peppol_endpoint_id
             party['endpointSchemeId'] = peppol_scheme_id
-        else:
-            derived_id, derived_scheme = self._clearvo_derive_peppol_endpoint(vat, country_code)
-            if derived_id:
-                party['endpointId'] = derived_id
-                party['endpointSchemeId'] = derived_scheme
 
         if contact_name or contact_phone or contact_email:
             party['contact'] = {}
@@ -354,25 +322,6 @@ class AccountMove(models.Model):
         vat_rate = sum(t.amount for t in percent_taxes)
 
         return (tax_code, vat_rate)
-
-    # ── Peppol endpoint derivation ────────────────────────────────────────────
-
-    @staticmethod
-    def _clearvo_derive_peppol_endpoint(vat, country_code):
-        """
-        Auto-derive Peppol endpointId from VAT for countries where it's possible.
-        Returns (None, None) for countries that need an explicit partner field
-        (NL=KvK, AT=9915, SK=IČO, IS=Kennitala, NZ=NZBN, AE, CH=UID).
-        """
-        if not vat or not country_code:
-            return (None, None)
-        scheme_info = PEPPOL_AUTO_DERIVE.get(country_code)
-        if not scheme_info:
-            return (None, None)
-        eas_scheme, prefix_pattern = scheme_info
-        numeric = re.sub(prefix_pattern, '', vat, flags=re.IGNORECASE)
-        numeric = re.sub(r'[\s.]', '', numeric)
-        return (f'{eas_scheme}:{numeric}', eas_scheme)
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
