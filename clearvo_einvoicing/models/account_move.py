@@ -12,12 +12,21 @@ _logger = logging.getLogger(__name__)
 CLEARVO_API_BASE = 'https://api.clearvo.io/v1'
 REQUEST_TIMEOUT = 30
 
-CLEARANCE_STATUS_MAP = {
-    'ACCEPTED':  'accepted',
-    'REJECTED':  'rejected',
-    'PENDING':   'pending',
-    'SUBMITTED': 'submitted',
-}
+# Odoo selection values that Clearvo statuses can map to.
+# Clearvo sends uppercase (e.g. ACCEPTED); Odoo stores lowercase (accepted).
+# Internal-only values (not_sent, error) are never written from the API.
+_CLEARVO_WRITABLE_STATUSES = frozenset({'pending', 'submitted', 'accepted', 'rejected'})
+
+
+def _map_clearvo_status(clearance_status):
+    """
+    Convert a Clearvo clearanceStatus string to an Odoo selection value.
+    Returns None for unrecognised statuses so callers can ignore them gracefully
+    rather than writing a wrong value or raising.
+    Clearvo owns the status list — this module must not hardcode it.
+    """
+    mapped = (clearance_status or '').lower()
+    return mapped if mapped in _CLEARVO_WRITABLE_STATUSES else None
 
 
 class AccountMove(models.Model):
@@ -148,7 +157,7 @@ class AccountMove(models.Model):
                 data = resp.json()
                 clearance = data.get('clearanceStatus', 'PENDING')
                 self.write({
-                    'clearvo_status': CLEARANCE_STATUS_MAP.get(clearance, 'pending'),
+                    'clearvo_status': _map_clearvo_status(clearance) or 'pending',
                     'clearvo_ref_id': data.get('referenceId'),
                     'clearvo_error': False,
                     'clearvo_submitted_at': fields.Datetime.now(),
@@ -157,9 +166,9 @@ class AccountMove(models.Model):
                 # Idempotent duplicate — already submitted with this key.
                 data = resp.json()
                 self.write({
-                    'clearvo_status': CLEARANCE_STATUS_MAP.get(
-                        data.get('clearanceStatus', 'SUBMITTED'), 'submitted'
-                    ),
+                    'clearvo_status': _map_clearvo_status(
+                        data.get('clearanceStatus', 'SUBMITTED')
+                    ) or 'submitted',
                     'clearvo_ref_id': data.get('referenceId') or self.clearvo_ref_id,
                     'clearvo_error': False,
                 })
@@ -371,8 +380,11 @@ class AccountMove(models.Model):
             _logger.warning('Clearvo webhook: no invoice found for referenceId %s', ref_id)
             return True  # Acknowledge so Clearvo doesn't retry
 
-        new_status = CLEARANCE_STATUS_MAP.get(clearance)
-        if new_status and new_status != move.clearvo_status:
+        new_status = _map_clearvo_status(clearance)
+        if not new_status:
+            _logger.info('Clearvo webhook: unrecognised clearanceStatus %r for %s — ignoring', clearance, ref_id)
+            return True
+        if new_status != move.clearvo_status:
             vals = {'clearvo_status': new_status}
             if new_status == 'rejected':
                 vals['clearvo_error'] = payload.get('rejectionReason', 'Rejected by tax authority.')
@@ -402,9 +414,9 @@ class AccountMove(models.Model):
                 )
                 if resp.status_code == 200:
                     data = resp.json()
-                    new_status = CLEARANCE_STATUS_MAP.get(
-                        data.get('clearanceStatus', 'PENDING'), 'pending'
-                    )
+                    new_status = _map_clearvo_status(
+                        data.get('clearanceStatus', 'PENDING')
+                    ) or 'pending'
                     if new_status != move.clearvo_status:
                         move.clearvo_status = new_status
             except Exception:
