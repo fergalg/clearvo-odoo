@@ -32,5 +32,10 @@ Belgium (Peppol BIS 3.0), Italy, Poland, Spain, Portugal and more.
     'installable': True,
     'application': False,
     'auto_install': False,
-    'images': ['static/description/banner.png'],
+    'images': [
+        'static/description/banner.png',
+        'static/description/screenshot_invoice.png',
+        'static/description/screenshot_wizard.png',
+        'static/description/screenshot_settings.png',
+    ],
 }
