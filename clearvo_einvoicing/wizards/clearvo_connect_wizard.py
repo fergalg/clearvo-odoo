@@ -90,7 +90,7 @@ class ClearvoConnectWizard(models.TransientModel):
                     base_url,
                 )
                 return
-            webhook_url = f'{base_url.rstrip("/")}/clearvo/webhook'
+            webhook_url = f'{base_url.rstrip("/")}/clearvo/webhook/{self.env.company.id}'
             resp = requests.post(
                 f'{CLEARVO_API_BASE}/webhooks',
                 json={

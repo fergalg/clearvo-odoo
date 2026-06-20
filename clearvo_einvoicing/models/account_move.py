@@ -1,9 +1,10 @@
 import logging
 import re
+import threading
 import uuid
 import requests
 
-from odoo import models, fields, api, _
+from odoo import api, models, fields, registry as odoo_registry, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -90,8 +91,27 @@ class AccountMove(models.Model):
             and m.company_id.clearvo_api_key
             and m.company_id.clearvo_auto_submit
         )
-        for move in qualifying:
-            move._clearvo_send()
+        if not qualifying:
+            return result
+
+        invoice_ids = qualifying.ids
+        dbname = self.env.cr.dbname
+        uid = self.env.uid
+
+        # Run after the posting transaction commits so the invoice is visible
+        # in the DB before the background thread reads it.
+        def _submit_after_commit():
+            def _run():
+                for inv_id in invoice_ids:
+                    try:
+                        with odoo_registry(dbname).cursor() as new_cr:
+                            env = api.Environment(new_cr, uid, {})
+                            env['account.move'].browse(inv_id)._clearvo_send()
+                    except Exception:
+                        _logger.exception('Background Clearvo send failed for invoice %s', inv_id)
+            threading.Thread(target=_run, daemon=True).start()
+
+        self.env.cr.postcommit.add(_submit_after_commit)
         return result
 
     # ── Core submission ───────────────────────────────────────────────────────
