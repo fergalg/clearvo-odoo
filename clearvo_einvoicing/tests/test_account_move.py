@@ -148,13 +148,22 @@ class TestClearvoAccountMove(TransactionCase):
         self.assertEqual(code, 'O')
         self.assertEqual(rate, 0)
 
-    def test_resolve_tax_missing_code_raises(self):
+    def test_resolve_tax_auto_detects_when_no_override(self):
+        # 6% non-zero tax with no override → auto-detects as S (standard)
         invoice = self._make_invoice(taxes=self.tax_no_code)
         line = invoice.invoice_line_ids[0]
-        with self.assertRaises(UserError) as cm:
-            invoice._clearvo_resolve_tax(line, line_index=1)
-        self.assertIn('Clearvo tax code not configured', str(cm.exception))
-        self.assertIn('6% VAT (unconfigured)', str(cm.exception))
+        code, rate = invoice._clearvo_resolve_tax(line, line_index=1)
+        self.assertEqual(code, 'S')
+        self.assertAlmostEqual(rate, 6.0)
+
+    def test_resolve_tax_override_wins_over_auto(self):
+        # Manual override of AA (reduced) beats the auto-detected S
+        self.tax_no_code.clearvo_tax_code = 'AA'
+        invoice = self._make_invoice(taxes=self.tax_no_code)
+        line = invoice.invoice_line_ids[0]
+        code, rate = invoice._clearvo_resolve_tax(line, line_index=1)
+        self.assertEqual(code, 'AA')
+        self.tax_no_code.clearvo_tax_code = False  # restore
 
     # ── Submission ────────────────────────────────────────────────────────────
 
@@ -207,14 +216,14 @@ class TestClearvoAccountMove(TransactionCase):
         self.assertEqual(invoice.clearvo_status, 'error')
         self.assertIn('timed out', invoice.clearvo_error)
 
-    def test_send_missing_tax_code_stores_error(self):
+    def test_send_auto_detects_tax_code_when_no_override(self):
+        # tax_no_code has amount=6%, no override → auto-detects S → submission proceeds
         invoice = self._make_invoice(taxes=self.tax_no_code)
-        with patch('requests.post') as mock_post:
+        mock_resp = self._mock_response(201, {'referenceId': 'r-auto', 'clearanceStatus': 'ACCEPTED'})
+        with patch('requests.post', return_value=mock_resp) as mock_post:
             invoice._clearvo_send()
-            mock_post.assert_not_called()
-
-        self.assertEqual(invoice.clearvo_status, 'error')
-        self.assertIn('Clearvo tax code not configured', invoice.clearvo_error)
+            mock_post.assert_called_once()
+        self.assertEqual(invoice.clearvo_status, 'accepted')
 
     def test_send_generates_idempotency_key(self):
         invoice = self._make_invoice()

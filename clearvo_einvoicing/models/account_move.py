@@ -295,30 +295,16 @@ class AccountMove(models.Model):
         """
         Return (tax_code, vat_rate) for an invoice line.
 
-        Requires clearvo_tax_code to be set on every tax — no silent fallback.
-        Raises UserError pointing the user to Accounting → Configuration → Taxes.
-        Lines with no taxes at all are mapped to 'O' (out of scope, 0%).
+        Uses the manual clearvo_tax_code override if set; otherwise auto-detects
+        from the tax rate and fiscal position tags. Lines with no percent taxes → 'O'.
         """
         percent_taxes = line.tax_ids.filtered(lambda t: t.amount_type == 'percent')
 
         if not percent_taxes:
             return ('O', 0)
 
-        unconfigured = percent_taxes.filtered(lambda t: not t.clearvo_tax_code)
-        if unconfigured:
-            names = ', '.join(f'"{t.name}"' for t in unconfigured)
-            loc = f' (line {line_index})' if line_index else ''
-            raise UserError(_(
-                'Clearvo tax code not configured for tax %(names)s%(loc)s.\n\n'
-                'Go to Accounting → Configuration → Taxes, open each tax, '
-                'and set the Clearvo Tax Code field (e.g. S for standard rate, '
-                'AA for reduced rate, AE for reverse charge).',
-                names=names,
-                loc=loc,
-            ))
-
         primary = percent_taxes[0]
-        tax_code = primary.clearvo_tax_code
+        tax_code = primary.clearvo_effective_tax_code()
         vat_rate = sum(t.amount for t in percent_taxes)
 
         return (tax_code, vat_rate)

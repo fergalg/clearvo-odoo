@@ -7,9 +7,18 @@
         <field name="inherit_id" ref="account.view_tax_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='description']" position="after">
+                <separator string="Clearvo E-Invoicing"/>
+                <field name="clearvo_tax_code_auto" readonly="1"
+                       string="Auto-detected code"
+                       help="The EN16931 tax category Clearvo will use for this tax, based on its rate and fiscal tags. No action needed unless this is wrong."/>
                 <field name="clearvo_tax_code"
-                       help="EN16931 tax category sent to Clearvo for lines using this tax.
-Leave blank to auto-detect: S for non-zero rates, AE for 0% rates."/>
+                       string="Override"
+                       placeholder="Leave blank to use auto-detected code above"
+                       help="Only set this if the auto-detected code above is incorrect for your specific tax treatment. Leave blank in most cases."/>
+                <div class="text-muted" style="font-size:12px; margin-top:4px; margin-bottom:8px;">
+                    Clearvo automatically maps your tax rate and fiscal position tags to the
+                    correct EN16931 code. Set an override only if needed.
+                </div>
             </xpath>
         </field>
     </record>
