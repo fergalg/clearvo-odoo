@@ -86,25 +86,10 @@
     <span style="font-size:12px;color:#6b7280;">Settings panel showing connected status, API key management, and auto-submit toggle.</span>
 </p>
 
-<h2>Tax codes — automatic, with manual override</h2>
+<h2>Full integration guide</h2>
 <p>
-    Clearvo uses EN16931 tax category codes (S, AA, AE, K, G, E, O…) to determine VAT treatment per invoice line.
-    <strong>You don't need to configure anything</strong> — the module detects the correct code automatically
-    from your Odoo tax rate and fiscal position tags:
-</p>
-<table>
-    <tr><th>Your tax in Odoo</th><th>Auto-detected code</th></tr>
-    <tr><td>Any tax with amount &gt; 0%</td><td><code>S</code> — Standard rate</td></tr>
-    <tr><td>0% with intra-EU / IC tag</td><td><code>K</code> — Intra-EU supply</td></tr>
-    <tr><td>0% with export / outside EU tag</td><td><code>G</code> — Export</td></tr>
-    <tr><td>0% with reverse charge tag</td><td><code>AE</code> — Reverse charge</td></tr>
-    <tr><td>0% with no special tag</td><td><code>E</code> — Exempt</td></tr>
-    <tr><td>Fixed amount tax</td><td><code>O</code> — Out of scope</td></tr>
-</table>
-<p>
-    If auto-detection isn't right for a specific tax, open the tax in <strong>Accounting → Configuration → Taxes</strong>
-    and set the <strong>Clearvo Tax Code Override</strong> field. The override takes precedence; the auto-detected
-    code is shown next to it so you can compare.
+    Tax code auto-detection, EN16931 code reference, manual override instructions, webhook setup, and troubleshooting:
+    <a href="https://clearvo.io/docs/odoo">clearvo.io/docs/odoo</a>
 </p>
 
 <h2>Requirements</h2>
