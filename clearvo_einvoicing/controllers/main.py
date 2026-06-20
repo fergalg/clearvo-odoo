@@ -42,8 +42,15 @@ class ClearvoWebhookController(http.Controller):
         ts_header = request.httprequest.headers.get('x-taxually-timestamp', '')
         webhook_secret = company.clearvo_webhook_secret or None
 
-        if webhook_secret:
-            if not sig_header or not ts_header:
+        if not webhook_secret:
+            _logger.warning('Clearvo webhook: company %s has no webhook secret — rejecting unauthenticated delivery', company_id)
+            return request.make_response(
+                json.dumps({'ok': False, 'error': 'webhook_not_configured'}),
+                headers=[('Content-Type', 'application/json')],
+                status=503,
+            )
+
+        if not sig_header or not ts_header:
                 _logger.warning('Clearvo webhook: missing signature or timestamp headers')
                 return request.make_response(
                     json.dumps({'ok': False, 'error': 'missing_signature'}),
